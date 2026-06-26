@@ -25,6 +25,7 @@ enum Item<'a> {
     Interfaces(&'a InterfaceMap),
     Offsets(&'a OffsetMap),
     Schemas(&'a SchemaMap),
+    Info(DateTime<Utc>, u32),
 }
 
 impl<'a> Item<'a> {
@@ -55,6 +56,9 @@ impl<'a> CodeWriter for Item<'a> {
             Item::Interfaces(ifaces) => ifaces.write_cs(fmt),
             Item::Offsets(offsets) => offsets.write_cs(fmt),
             Item::Schemas(schemas) => schemas.write_cs(fmt),
+            Item::Info(ts, build) => write!(fmt,
+                "namespace CS2Dumper.Info {{\n    public static class BuildInfo {{\n        public const string Timestamp = \"{ts}\";\n        public const uint BuildNumber = {build};\n    }}\n}}\n"
+            ),
         }
     }
 
@@ -64,6 +68,9 @@ impl<'a> CodeWriter for Item<'a> {
             Item::Interfaces(ifaces) => ifaces.write_hpp(fmt),
             Item::Offsets(offsets) => offsets.write_hpp(fmt),
             Item::Schemas(schemas) => schemas.write_hpp(fmt),
+            Item::Info(ts, build) => write!(fmt,
+                "namespace cs2_dumper {{\n    namespace info {{\n        constexpr std::uint32_t build_number = {build};\n        constexpr const char* timestamp = \"{ts}\";\n    }}\n}}\n"
+            ),
         }
     }
 
@@ -73,6 +80,9 @@ impl<'a> CodeWriter for Item<'a> {
             Item::Interfaces(ifaces) => ifaces.write_json(fmt),
             Item::Offsets(offsets) => offsets.write_json(fmt),
             Item::Schemas(schemas) => schemas.write_json(fmt),
+              Item::Info(ts, build) => write!(fmt,
+                "{{\n    \"build_number\": {build},\n    \"timestamp\": \"{ts}\"\n}}\n"
+            ),
         }
     }
 
@@ -82,6 +92,9 @@ impl<'a> CodeWriter for Item<'a> {
             Item::Interfaces(ifaces) => ifaces.write_rs(fmt),
             Item::Offsets(offsets) => offsets.write_rs(fmt),
             Item::Schemas(schemas) => schemas.write_rs(fmt),
+              Item::Info(ts, build) => write!(fmt,
+                "pub mod info {{\n    pub const BUILD_NUMBER: u32 = {build};\n    pub const TIMESTAMP: &str = \"{ts}\";\n}}\n"
+            ),
         }
     }
 
@@ -91,6 +104,9 @@ impl<'a> CodeWriter for Item<'a> {
             Item::Interfaces(ifaces) => ifaces.write_zig(fmt),
             Item::Offsets(offsets) => offsets.write_zig(fmt),
             Item::Schemas(schemas) => schemas.write_zig(fmt),
+              Item::Info(ts, build) => write!(fmt,
+                "pub const info = struct {{\n    pub const build_number: u32 = {build};\n    pub const timestamp: []const u8 = \"{ts}\";\n}};\n"
+            ),
         }
     }
 }
@@ -139,29 +155,22 @@ impl<'a> Output<'a> {
     }
 
     fn dump_info<P: MemoryView + Process>(&self, process: &mut P) -> Result<()> {
-        let file_path = self.out_dir.join("info.json");
+    let build_number = self
+        .result
+        .offsets
+        .iter()
+        .find_map(|(module_name, offsets)| {
+            let module = process.module_by_name(module_name).ok()?;
+            let offset = offsets.iter().find(|(name, _)| *name == "dwBuildNumber")?.1;
 
-        let build_number = self
-            .result
-            .offsets
-            .iter()
-            .find_map(|(module_name, offsets)| {
-                let module = process.module_by_name(module_name).ok()?;
-                let offset = offsets.iter().find(|(name, _)| *name == "dwBuildNumber")?.1;
+            process.read::<u32>(module.base + offset).data_part().ok()
+        })
+        .ok_or(anyhow!("failed to read build number"))?;
 
-                process.read::<u32>(module.base + offset).data_part().ok()
-            })
-            .ok_or(anyhow!("failed to read build number"))?;
+    self.dump_item("info", &Item::Info(self.timestamp, build_number))?;
 
-        let content = serde_json::to_string_pretty(&json!({
-            "timestamp": self.timestamp.to_rfc3339(),
-            "build_number": build_number,
-        }))?;
-
-        fs::write(&file_path, &content)?;
-
-        Ok(())
-    }
+    Ok(())
+}
 
     fn dump_item(&self, file_name: &str, item: &Item) -> Result<()> {
         for file_type in self.file_types {
