@@ -9,6 +9,8 @@ outdated).
 For a work-in-progress offline version, check out the [cs2-analyzer](https://github.com/a2x/cs2-analyzer) repository or
 view its included web demo [here](https://a2x.github.io/cs2-analyzer).
 
+The reason I forked this was to eventually add version files for caching. I also did not enjoy the slow update times (no offense, I get jobs and stuff.)
+
 ## Getting Started
 
 You can download the latest release from [Releases](https://github.com/a2x/cs2-dumper/releases) or compile it yourself.

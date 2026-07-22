@@ -7409,6 +7409,26 @@
           "SYNC_WAIT_FOR_COMPLETION": 0
         },
         "type": "uint32"
+      },
+      "_E__R_": {
+        "alignment": 0,
+        "members": {},
+        "type": "unknown"
+      },
+      "__1_R_": {
+        "alignment": 120,
+        "members": {},
+        "type": "unknown"
+      },
+      "____R_": {
+        "alignment": 0,
+        "members": {},
+        "type": "unknown"
+      },
+      "_s__R_": {
+        "alignment": 0,
+        "members": {},
+        "type": "unknown"
       }
     }
   }
