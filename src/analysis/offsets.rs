@@ -124,7 +124,7 @@ pattern_map! {
         "dwSoundSystem" => pattern!("488d0d${'} e8${} 488b0d${} [3] 4c8b82") => None,
         "dwSoundSystem_engineViewData" => pattern!("0f1147u1 0f104e? 0f118f") => None,
     },
-}
+} 
 
 pub fn offsets<P: Process + MemoryView>(process: &mut P) -> Result<OffsetMap> {
     let mut map = BTreeMap::new();
