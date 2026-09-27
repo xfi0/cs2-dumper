@@ -1,7 +1,7 @@
 // Generated using https://github.com/a2x/cs2-dumper
-// 2026-08-25 12:50:33.031744800 UTC
+// 2026-09-27 16:09:22.496127300 UTC
 
 pub mod info {
-    pub const BUILD_NUMBER: u32 = 14177;
-    pub const TIMESTAMP: &str = "2026-08-25 12:50:33.031744800 UTC";
+    pub const BUILD_NUMBER: u32 = 14185;
+    pub const TIMESTAMP: &str = "2026-09-27 16:09:22.496127300 UTC";
 }
